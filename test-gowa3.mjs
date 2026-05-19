@@ -1,0 +1,17 @@
+async function run() {
+  const gowaUrl = 'https://gowa-7c8k.srv909561.hstgr.cloud';
+  const hdrs = { 'Authorization': 'Basic YWRtaW46MTIwMjIx', 'Content-Type': 'application/json', 'Host': 'srv909561.hstgr.cloud', 'X-Device-Id': 'eburon' };
+  
+  let res = await fetch(gowaUrl + '/device', { headers: hdrs });
+  console.log('/device:', await res.text());
+
+  res = await fetch(gowaUrl + '/device/list', { headers: hdrs });
+  console.log('/device/list:', await res.text());
+  
+  res = await fetch(gowaUrl + '/device/create', { headers: hdrs, method: 'POST', body: JSON.stringify({device_id: 'eburon'}) });
+  console.log('/device/create (eburon):', await res.text());
+
+  res = await fetch(gowaUrl + '/app/login', { headers: hdrs });
+  console.log('/app/login:', await res.text());
+}
+run();
