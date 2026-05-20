@@ -383,81 +383,100 @@ export function WhatsAppCloudConnector() {
   }
 
   return (
-    <div className="flex flex-col h-full text-slate-200 overflow-y-auto p-4 md:p-8 relative custom-scrollbar">
-      <div className="max-w-3xl mx-auto w-full flex flex-col gap-8 pb-20">
+    <div className="flex flex-col h-full bg-[#09090b] text-slate-200 overflow-y-auto p-4 md:p-8 relative custom-scrollbar font-sans">
+      <div className="max-w-4xl mx-auto w-full flex flex-col gap-8 pb-20 mt-4 md:mt-8">
         
-        {/* Main Connection Box */}
-        <div className="bg-slate-900/30 border border-slate-800/40 p-8 md:p-12 rounded-[32px] flex flex-col md:flex-row items-center gap-10 relative overflow-hidden">
-          <div className="flex-1 flex flex-col gap-4 text-center md:text-left">
-            <div className="flex items-center gap-2 justify-center md:justify-start">
+        {/* Main Connection Header */}
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">
+            WhatsApp Integration
+          </h1>
+          <p className="text-slate-400 text-sm md:text-base max-w-xl">
+            Link your WhatsApp account to enable Beatrice AI to communicate on your behalf. Scan the QR code with your mobile device to establish a secure connection.
+          </p>
+        </div>
+
+        {/* QR Code Card */}
+        <div className="bg-[#18181b] border border-white/5 rounded-3xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl">
+          <div className="flex-1 flex flex-col gap-6 w-full">
+            <div className="flex items-center gap-3">
               {Object.values(state.contacts).some(c => c.connected) ? (
-                <span className="bg-lime-500/10 text-lime-400 text-xs px-3 py-1 rounded-full uppercase tracking-widest font-medium flex items-center gap-1.5 border border-lime-500/20">
-                  <CheckCircle2 size={12} /> Connected
-                </span>
+                <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  CONNECTED
+                </div>
               ) : (
-                <span className="bg-white/5 text-slate-400 text-xs px-3 py-1 rounded-full uppercase tracking-widest font-medium border border-white/10">
-                  Disconnected
-                </span>
+                <div className="inline-flex items-center gap-2 bg-white/5 text-slate-400 border border-white/10 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide">
+                  <div className="w-2 h-2 rounded-full bg-slate-500" />
+                  DISCONNECTED
+                </div>
               )}
             </div>
 
-            <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-white mt-2 mb-2">
-              Connect your WhatsApp
-            </h2>
-            <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-md mx-auto md:mx-0">
-              Scan the QR code using your mobile device securely link your account with Beatrice AI.
-            </p>
-            
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-xl font-medium text-white">Device Pairing</h3>
+              <p className="text-slate-400 text-sm">
+                Generate a temporary QR code to link your current session.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-4 mt-2">
               <button 
                 onClick={generateQr}
-                className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full text-sm font-medium hover:bg-slate-200 transition-colors shadow-lg hover:shadow-xl"
+                className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-200 transition-all focus:ring-2 focus:ring-white/20 active:scale-[0.98]"
               >
-                <QrCode size={18} /> Generate Connection Link
+                <QrCode size={18} /> {qrUrl ? 'Regenerate QR Code' : 'Generate QR Code'}
               </button>
               {Object.values(state.contacts).some(c => c.connected) && (
                 <button 
                   onClick={resetAll}
-                  className="flex items-center gap-2 bg-rose-950/30 text-rose-400 hover:bg-rose-900/40 px-6 py-3 rounded-full border border-rose-900/30 text-sm font-medium transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 px-6 py-2.5 rounded-xl border border-rose-500/20 text-sm font-medium transition-all active:scale-[0.98]"
                 >
-                  <Trash2 size={18} /> Disconnect
+                  <Trash2 size={18} /> Disconnect Device
                 </button>
               )}
             </div>
           </div>
 
           <div className="flex flex-col items-center gap-4">
-            <div className="bg-white p-6 rounded-[32px] shadow-2xl relative w-56 h-56 flex items-center justify-center">
+            <div className="bg-white p-4 rounded-2xl shadow-xl border border-white/10 relative w-48 h-48 flex items-center justify-center overflow-hidden group transition-all">
               {qrUrl ? (
-                <img src={qrUrl} alt="WhatsApp QR" className="w-full h-full object-contain" />
+                <div className="relative w-full h-full animate-in fade-in zoom-in duration-500">
+                   <img src={qrUrl} alt="WhatsApp QR" className="w-full h-full object-contain mix-blend-multiply" />
+                </div>
               ) : (
-                <div className="text-slate-900 opacity-20 flex flex-col items-center gap-3">
-                  <QrCode size={48} />
+                <div className="text-slate-300 flex flex-col items-center justify-center h-full gap-2 transition-opacity">
+                  <QrCode size={32} strokeWidth={1.5} />
+                  <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Scan Me</span>
                 </div>
               )}
             </div>
-            {qrUrl && (
-              <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-                Expires in 10 minutes
-              </div>
-            )}
+            <div className="h-4">
+              {qrUrl && (
+                <span className="text-[#a1a1aa] text-[10px] font-mono uppercase tracking-widest animate-in fade-in duration-500">
+                  Code expires in 10:00
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Permissions Section */}
-        <div className="bg-slate-900/30 border border-slate-800/40 p-8 md:p-12 rounded-[32px] flex flex-col gap-8">
-          <div>
-            <h3 className="text-2xl font-normal text-white">Access Permissions</h3>
-            <p className="text-slate-400 text-sm mt-2">Configure what Beatrice AI can do on your behalf. These settings are instantly saved.</p>
+        {/* Permissions Configuration */}
+        <div className="flex flex-col gap-6 mt-4">
+          <div className="flex flex-col gap-1 border-b border-white/5 pb-4">
+            <h3 className="text-xl font-medium text-white">Agent Permissions</h3>
+            <p className="text-slate-400 text-sm">
+              Select precisely what Beatrice is authorized to perform on your connected device.
+            </p>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { key: 'readMessages', label: 'Read WhatsApp Messages', desc: 'Allow AI to monitor incoming messages and understand conversation context.', icon: MessageSquare },
-              { key: 'searchContacts', label: 'Search User Contacts', desc: 'Allow AI to lookup existing contacts in your WhatsApp address book.', icon: UserIcon },
+              { key: 'readMessages', label: 'Read Messages', desc: 'Allow AI to monitor incoming messages and understand conversation context.', icon: MessageSquare },
               { key: 'sendMessages', label: 'Send Messages', desc: 'Allow AI to reply to customers and initiate conversations.', icon: Send },
-              { key: 'manageContacts', label: 'Manage Contacts & Calls', desc: 'Allow AI to create new contacts and handle call requests/scheduling.', icon: Info },
-              { key: 'automaticSender', label: 'Automatic Sender & Reminders', desc: 'Allow scheduled messaging and automated daily streak/reminder tasks.', icon: History },
+              { key: 'searchContacts', label: 'Search Contacts', desc: 'Allow AI to lookup existing contacts in your address book.', icon: UserIcon },
+              { key: 'manageContacts', label: 'Manage Contacts', desc: 'Allow AI to create new contacts and handle call requests.', icon: Info },
+              { key: 'automaticSender', label: 'Background Automation', desc: 'Allow scheduled messaging and automated daily streak/reminder tasks.', icon: History },
             ].map((p) => {
               const Icon = p.icon;
               const isEnabled = state.permissions?.[p.key as keyof Permissions];
@@ -465,24 +484,30 @@ export function WhatsAppCloudConnector() {
                 <div 
                   key={p.key}
                   onClick={() => togglePermission(p.key as keyof Permissions)}
-                  className={`flex flex-col md:flex-row md:items-center gap-4 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                  className={`flex flex-row items-center justify-between p-5 rounded-2xl cursor-pointer border transition-all duration-200 ${
                     isEnabled 
-                      ? 'bg-lime-500/5 hover:bg-lime-500/10' 
-                      : 'hover:bg-slate-800/20'
+                      ? 'bg-[#18181b] border-white/10 shadow-sm' 
+                      : 'bg-[#18181b]/50 border-transparent hover:bg-[#18181b]/80'
                   }`}
                 >
-                  <div className={`p-4 rounded-full flex-shrink-0 transition-colors ${isEnabled ? 'bg-lime-500/10 text-lime-400' : 'bg-slate-800/50 text-slate-500'}`}>
-                    <Icon size={20} strokeWidth={1.5} />
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2.5 rounded-xl transition-colors duration-300 ${isEnabled ? 'bg-white text-black' : 'bg-white/5 text-slate-400'}`}>
+                      <Icon size={18} strokeWidth={2} />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className={`text-sm font-medium transition-colors ${isEnabled ? 'text-white' : 'text-slate-300'}`}>{p.label}</span>
+                      <span className="text-xs text-slate-500 leading-relaxed max-w-[200px] line-clamp-2" title={p.desc}>{p.desc}</span>
+                    </div>
                   </div>
-                  <div className="flex-1 flex flex-col gap-1 md:pr-4">
-                    <span className={`text-base font-medium transition-colors ${isEnabled ? 'text-white' : 'text-slate-300'}`}>{p.label}</span>
-                    <span className="text-sm text-slate-500 leading-relaxed">{p.desc}</span>
-                  </div>
-                  <div className="flex items-center self-start md:self-center mt-2 md:mt-0 pt-1">
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      isEnabled ? 'border-lime-500 bg-lime-500/10' : 'border-slate-700 bg-transparent'
+                  
+                  {/* Modern Toggle Switch */}
+                  <div className="ml-4 flex-shrink-0">
+                    <div className={`w-11 h-6 rounded-full transition-colors duration-300 relative flex items-center px-1 border ${
+                      isEnabled ? 'bg-white border-white' : 'bg-transparent border-white/20'
                     }`}>
-                      {isEnabled && <div className="w-3 h-3 rounded-full bg-lime-500 animate-in fade-in zoom-in duration-300" />}
+                      <div className={`w-4 h-4 rounded-full transition-all duration-300 transform shadow-sm ${
+                        isEnabled ? 'translate-x-5 bg-black' : 'translate-x-0 bg-white/40'
+                      }`} />
                     </div>
                   </div>
                 </div>
@@ -495,14 +520,14 @@ export function WhatsAppCloudConnector() {
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 5px;
+          width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
+          border-radius: 20px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(255, 255, 255, 0.2);
