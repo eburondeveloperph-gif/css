@@ -4,7 +4,7 @@ import { FunctionResponseScheduling } from '@google/genai';
 export const whatsappTools: FunctionCall[] = [
   {
     name: 'send_whatsapp_message',
-    description: 'Sends a WhatsApp message to a specific phone number using the GoWA service.',
+    description: 'Sends a WhatsApp message to a specific phone number using the official Meta WhatsApp Cloud API.',
     parameters: {
       type: 'OBJECT',
       properties: {

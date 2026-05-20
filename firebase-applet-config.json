@@ -1,10 +1,10 @@
 {
-  "projectId": "remixed-project-id",
-  "appId": "remixed-app-id",
-  "apiKey": "remixed-api-key",
-  "authDomain": "remixed-auth-domain",
-  "firestoreDatabaseId": "remixed-firestore-database-id",
-  "storageBucket": "remixed-storage-bucket",
-  "messagingSenderId": "remixed-messaging-sender-id",
-  "measurementId": "remixed-measurement-id"
+  "projectId": "planning-with-ai-ca084",
+  "appId": "1:14610107315:web:f4a9efd0c2806d1603d9c6",
+  "apiKey": "AIzaSyAudSe0dNPYkkF_98KeAl9kpMk7HOOPvNw",
+  "authDomain": "planning-with-ai-ca084.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-8cfbf978-0bdd-43b3-99d6-7cd9758654c4",
+  "storageBucket": "planning-with-ai-ca084.firebasestorage.app",
+  "messagingSenderId": "14610107315",
+  "measurementId": ""
 }

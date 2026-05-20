@@ -115,33 +115,3 @@ export const saveConversationTurn = async (role: string, content: string, sessio
   // To be implemented
   return { success: true };
 };
-
-export const connectWhatsapp = async () => {
-  const response = await fetch('/api/whatsapp/connect');
-  if (!response.ok) {
-    const text = await response.text();
-    let details = text;
-    try {
-      const json = JSON.parse(text);
-      details = json.details || json.error || text;
-    } catch (e) {}
-    throw new Error(`Failed to connect to WhatsApp: ${response.statusText} (${details})`);
-  }
-  const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    const text = await response.text();
-    throw new Error(`Received unexpected response from server: ${text.substring(0, 100)}...`);
-  }
-  return response.json();
-};
-
-export const sendWhatsappMessage = async (phone: string, text: string) => {
-  const token = await getToken();
-  return apiClient.post('/api/whatsapp/send', { phone, text }, token);
-};
-
-export const listWhatsappMessages = async (limit?: number) => {
-  const token = await getToken();
-  const limitQuery = limit ? `?limit=${limit}` : '';
-  return apiClient.get(`/api/whatsapp/messages${limitQuery}`, token);
-};
