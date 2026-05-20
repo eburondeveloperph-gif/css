@@ -34,11 +34,20 @@ interface Contact {
   messages: Message[];
 }
 
+interface Permissions {
+  searchContacts: boolean;
+  sendMessages: boolean;
+  readMessages: boolean;
+  manageContacts: boolean;
+  automaticSender: boolean;
+}
+
 interface State {
   config: WaConfig;
   pendingLinks: Record<string, any>;
   contacts: Record<string, Contact>;
   selectedWaId: string | null;
+  permissions?: Permissions;
 }
 
 export function WhatsAppCloudConnector() {
@@ -52,6 +61,13 @@ export function WhatsAppCloudConnector() {
     pendingLinks: {},
     contacts: {},
     selectedWaId: null,
+    permissions: {
+      searchContacts: false,
+      sendMessages: true,
+      readMessages: true,
+      manageContacts: false,
+      automaticSender: false,
+    }
   });
 
   const [loading, setLoading] = useState(true);
@@ -61,7 +77,7 @@ export function WhatsAppCloudConnector() {
   const [sendBody, setSendBody] = useState<string>('✅ Connected. Your WhatsApp is now linked to the AI test connector.');
   const [status, setStatus] = useState({
     config: 'Config not saved yet.',
-    qr: 'No QR generated yet.',
+    qr: 'Ready to connect.',
     payload: 'Waiting for webhook payload.',
     send: 'Select a connected contact first.'
   });
@@ -87,13 +103,13 @@ export function WhatsAppCloudConnector() {
         setState(prev => ({
           ...prev,
           ...data,
-          config: { ...prev.config, ...data.config }
+          config: { ...prev.config, ...data.config },
+          permissions: data.permissions || prev.permissions
         }));
       }
       setLoading(false);
     }, (error) => {
       console.error("Error loading WhatsApp config:", error);
-      // Only handle if it's not a missing permission error during initial setup
       if (error.code !== 'permission-denied') {
         handleFirestoreError(error, OperationType.GET, COLLECTION_NAME);
       }
@@ -121,6 +137,17 @@ export function WhatsAppCloudConnector() {
     setStatus(s => ({ ...s, config: 'Saved successfully to your account.' }));
   };
 
+  const togglePermission = async (key: keyof Permissions) => {
+    if (!state.permissions) return;
+    const newPermissions = {
+      ...state.permissions,
+      [key]: !state.permissions[key]
+    };
+    const newState = { ...state, permissions: newPermissions };
+    setState(newState);
+    await persistState(newState);
+  };
+
   const resetAll = async () => {
     if (!window.confirm("Clear all your WhatsApp contacts, messages, and saved token from the database?")) return;
     
@@ -137,6 +164,13 @@ export function WhatsAppCloudConnector() {
       pendingLinks: {},
       contacts: {},
       selectedWaId: null,
+      permissions: {
+        searchContacts: false,
+        sendMessages: false,
+        readMessages: false,
+        manageContacts: false,
+        automaticSender: false,
+      }
     };
 
     try {
@@ -350,312 +384,226 @@ export function WhatsAppCloudConnector() {
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-y-auto p-4 md:p-6 gap-6">
-      {/* Header */}
+      {/* Header & Connection Status */}
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-            WhatsApp Cloud Connector
-            <span className="bg-amber-900/40 text-amber-500 border border-amber-800 text-xs px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">Cloud Auth</span>
+            WhatsApp Integration
+            {Object.values(state.contacts).some(c => c.connected) ? (
+              <span className="bg-lime-500/20 text-lime-400 border border-lime-500/30 text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(132,204,22,.1)]">
+                <CheckCircle2 size={12} /> Connected
+              </span>
+            ) : (
+              <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wider">
+                Disconnected
+              </span>
+            )}
           </h1>
-          <p className="text-slate-400 mt-1 max-w-2xl">
-            Linked to your account: <span className="text-white font-medium">{auth.currentUser?.email}</span>
+          <p className="text-slate-400 mt-1 max-w-2xl flex items-center gap-2">
+            {Object.values(state.contacts).find(c => c.connected)?.waId ? (
+              <>Linked ID: <span className="text-white font-mono bg-white/5 px-2 py-0.5 rounded">+{Object.values(state.contacts).find(c => c.connected)?.waId}</span></>
+            ) : (
+              <>Status: <span className="text-slate-300">Ready to pair with your device</span></>
+            )}
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <button 
             onClick={resetAll}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-rose-900/30 hover:bg-rose-900/50 text-rose-400 border border-rose-800/50 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-rose-900/20 hover:bg-rose-900/40 text-rose-400 border border-rose-800/30 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
           >
-            <Trash2 size={16} /> Reset All
+            <Trash2 size={16} /> Disconnect All
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20">
         
-        {/* Step 1: Credentials */}
-        <section className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Settings size={18} className="text-slate-500" />
-            1. Credentials
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Business Phone Number</label>
-              <input 
-                type="text" 
-                value={state.config.businessNumber} 
-                onChange={e => setState(s => ({ ...s, config: { ...s.config, businessNumber: e.target.value } }))}
-                className="bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-lime-500 outline-none transition-all" 
-                placeholder="15556375610"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Phone Number ID</label>
-              <input 
-                type="text" 
-                value={state.config.phoneNumberId} 
-                onChange={e => setState(s => ({ ...s, config: { ...s.config, phoneNumberId: e.target.value } }))}
-                className="bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-lime-500 outline-none transition-all" 
-                placeholder="1148407841689522"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">WABA ID</label>
-            <input 
-              type="text" 
-              value={state.config.wabaId} 
-              onChange={e => setState(s => ({ ...s, config: { ...s.config, wabaId: e.target.value } }))}
-              className="bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-lime-500 outline-none transition-all" 
-              placeholder="1308236421503956"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Access Token</label>
-            <input 
-              type="password" 
-              value={state.config.accessToken} 
-              onChange={e => setState(s => ({ ...s, config: { ...s.config, accessToken: e.target.value } }))}
-              className="bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-lime-500 outline-none transition-all font-mono" 
-              placeholder="Paste Meta temporary token"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">App User ID (Auto)</label>
-              <input 
-                type="text" 
-                value={appUserId} 
-                onChange={e => setAppUserId(e.target.value)}
-                className="bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-lime-500 outline-none transition-all opacity-70" 
-                placeholder="test-user-001"
-                readOnly
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scope</label>
-              <select 
-                value={scope} 
-                onChange={e => setScope(e.target.value)}
-                className="bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-lime-500 outline-none transition-all"
-              >
-                <option value="receive_only">Receive only</option>
-                <option value="send_only_after_approval">Send only after approval</option>
-                <option value="receive_and_send">Receive and send</option>
-                <option value="all_allowed_by_user">All allowed by user</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-2">
-            <button 
-              onClick={generateQr}
-              className="flex items-center gap-2 bg-lime-500 text-black px-4 py-2 rounded-xl text-sm font-bold hover:bg-lime-400 transition-all"
-            >
-              <QrCode size={18} /> Generate QR
-            </button>
-            <button 
-              onClick={saveConfig}
-              className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all"
-            >
-              <Save size={18} /> Save Settings
-            </button>
-            {waLink && (
-              <a 
-                href={waLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all border border-slate-700"
-              >
-                <ExternalLink size={18} /> Open WhatsApp
-              </a>
-            )}
-          </div>
-
-          <div className="bg-black/60 border border-slate-800/50 rounded-xl p-3 text-xs text-slate-400 flex items-start gap-2">
-            <Info size={14} className="mt-0.5 flex-shrink-0" />
-            <p>{status.config}</p>
-          </div>
-        </section>
-
-        {/* Step 2: QR Display */}
-        <section className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <QrCode size={18} className="text-slate-500" />
-            2. Scan QR
-          </h2>
-          <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-2xl min-h-[300px] p-6 relative group overflow-hidden">
-            {qrUrl ? (
-              <img src={qrUrl} alt="WhatsApp QR" className="w-full max-w-[260px] h-auto object-contain" />
-            ) : (
-              <p className="text-slate-900 font-medium text-center opacity-40">
-                Click <strong>Generate QR</strong> to create a deep-link.
+        {/* Main Connection Prompt & QR */}
+        <div className="lg:col-span-12 xl:col-span-8 flex flex-col gap-6">
+          <section className="bg-gradient-to-br from-slate-900/50 to-slate-900/20 border border-slate-800/60 p-8 rounded-[32px] flex flex-col md:flex-row items-center gap-10 shadow-xl overflow-hidden relative group">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-lime-500/5 rounded-full blur-3xl group-hover:bg-lime-500/10 transition-all duration-700"></div>
+            
+            <div className="flex-1 flex flex-col gap-5 text-center md:text-left">
+              <div className="inline-flex items-center justify-center md:justify-start gap-2 text-lime-400 font-bold text-sm uppercase tracking-[0.2em]">
+                <QrCode size={16} /> Start Integration
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+                Connect your <span className="text-lime-500">WhatsApp</span>
+              </h2>
+              <p className="text-slate-400 text-lg leading-relaxed max-w-md">
+                Scan the QR code below using your mobile device to securely link your WhatsApp account with Beatrice AI.
               </p>
-            )}
-          </div>
-          <div className="bg-black/60 border border-slate-800/50 rounded-xl p-3 text-xs text-slate-400 whitespace-pre-wrap flex items-start gap-2">
-            <Info size={14} className="mt-0.5 flex-shrink-0" />
-            <p>{status.qr}</p>
-          </div>
-        </section>
-
-        {/* Step 3: Webhook Payload */}
-        <section className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Link size={18} className="text-slate-500" />
-            3. Paste Webhook Payload
-          </h2>
-          <p className="text-sm text-slate-400">
-            Paste the JSON payload you receive in your webhook endpoint (or test panel).
-          </p>
-          <textarea 
-            value={payloadInput}
-            onChange={e => setPayloadInput(e.target.value)}
-            className="flex-1 bg-black/40 border border-slate-800 rounded-xl px-3 py-3 text-xs font-mono focus:border-lime-500 outline-none transition-all resize-none min-h-[140px]" 
-            placeholder='Paste payload with "messages": [{ "from": "...", "text": { "body": "LINK_..." } }]'
-          />
-          <div className="flex gap-2">
-            <button 
-              onClick={processPayload}
-              className="flex-1 flex items-center justify-center gap-2 bg-lime-500 text-black px-4 py-2 rounded-xl text-sm font-bold hover:bg-lime-400 transition-all"
-            >
-              Process Payload
-            </button>
-            <button 
-              onClick={() => setPayloadInput('')}
-              className="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all"
-            >
-              Clear
-            </button>
-          </div>
-          <div className="bg-black/60 border border-slate-800/50 rounded-xl p-3 text-xs text-slate-400 flex items-start gap-2">
-            <Info size={14} className="mt-0.5 flex-shrink-0" />
-            <p>{status.payload}</p>
-          </div>
-        </section>
-
-        {/* Step 4: Contacts */}
-        <section className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <UserIcon size={18} className="text-slate-500" />
-            4. Connected Contacts
-          </h2>
-          <div className="flex-1 overflow-y-auto max-h-[370px] pr-2 custom-scrollbar">
-            {sortedContacts.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {sortedContacts.map(c => (
-                  <div 
-                    key={c.waId} 
-                    onClick={() => setState(s => ({ ...s, selectedWaId: c.waId }))}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      state.selectedWaId === c.waId 
-                        ? 'bg-lime-500/10 border-lime-500/50 ring-1 ring-lime-500/20' 
-                        : 'bg-black/40 border-slate-800 hover:border-slate-700'
-                    }`}
+              
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-2">
+                <button 
+                  onClick={generateQr}
+                  className="flex items-center gap-2.5 bg-lime-500 text-black px-8 py-3.5 rounded-2xl text-base font-bold hover:bg-lime-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_8px_25px_rgba(132,204,22,.25)]"
+                >
+                  <QrCode size={20} /> Generate New QR
+                </button>
+                {waLink && (
+                  <a 
+                    href={waLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 bg-slate-800 text-white px-6 py-3.5 rounded-2xl text-base font-bold hover:bg-slate-700 hover:border-slate-600 transition-all border border-slate-700/50"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <strong className="font-bold flex items-center gap-2">
-                        {c.name || c.waId}
-                        {c.connected ? (
-                          <span className="bg-lime-900/40 text-lime-400 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border border-lime-800/50">Linked</span>
-                        ) : (
-                          <span className="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold">Unlinked</span>
-                        )}
-                      </strong>
-                    </div>
-                    <div className="grid grid-cols-2 gap-y-1 text-xs text-slate-400">
-                      <span>WA ID:</span> <span className="text-slate-300 font-mono text-[10px]">{c.waId}</span>
-                      <span>App User:</span> <span className="text-slate-300">{c.appUserId || '-'}</span>
-                      <span>Scope:</span> <span className="text-slate-300">{c.scope || '-'}</span>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-slate-800/50 text-xs text-slate-500 truncate">
-                      Last: {c.messages[c.messages.length - 1]?.body || 'No messages'}
-                    </div>
-                  </div>
-                ))}
+                    <ExternalLink size={20} /> Open Protocol Link
+                  </a>
+                )}
               </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
-                <AlertTriangle size={32} className="mb-3" />
-                <p className="text-sm">No connected contacts yet.</p>
-              </div>
-            )}
-          </div>
-        </section>
+            </div>
 
-        {/* Step 5: Messages */}
-        <section className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 lg:col-span-2">
-           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <History size={18} className="text-slate-500" />
-              5. Message Stream
-            </h2>
-            {state.selectedWaId && (
-              <span className="text-xs font-mono text-lime-500 bg-lime-500/10 px-2 py-1 rounded-lg border border-lime-500/20">
-                {state.selectedWaId}
-              </span>
-            )}
-           </div>
-
-           <div className="bg-black/40 border border-slate-800 rounded-2xl flex flex-col min-h-[300px] max-h-[500px]">
-             {state.selectedWaId ? (
-               <>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                  {state.contacts[state.selectedWaId].messages.map((m, idx) => (
-                    <div key={idx} className={`flex flex-col ${m.direction === 'out' ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[85%] p-3 rounded-2xl ${
-                        m.direction === 'out' 
-                          ? 'bg-lime-500 text-black rounded-tr-none shadow-lg shadow-lime-500/10' 
-                          : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'
-                      }`}>
-                        <div className={`text-[10px] mb-1 opacity-60 font-bold uppercase tracking-wider ${m.direction === 'out' ? 'text-black/70' : 'text-slate-400'}`}>
-                          {m.direction === 'out' ? 'Outgoing' : 'Incoming'} • {new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                        <div className="text-sm whitespace-pre-wrap leading-relaxed">{m.body}</div>
-                      </div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="bg-white p-5 rounded-[28px] shadow-2xl relative transition-transform duration-500 hover:rotate-1">
+                <div className="w-64 h-64 flex items-center justify-center">
+                  {qrUrl ? (
+                    <img src={qrUrl} alt="WhatsApp QR" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-slate-900 font-bold text-center opacity-20 flex flex-col items-center gap-3">
+                      <QrCode size={48} />
+                      <span className="text-sm">Click the button<br/>to generate QR</span>
                     </div>
-                  ))}
-                  {state.contacts[state.selectedWaId].messages.length === 0 && (
-                     <div className="h-full flex items-center justify-center opacity-30 text-sm">No messages in this chat.</div>
                   )}
                 </div>
-                
-                {/* 6. Send Box */}
-                <div className="p-4 border-t border-slate-800 bg-black/20">
-                  <div className="flex flex-col gap-3">
-                    <textarea 
-                      value={sendBody}
-                      onChange={e => setSendBody(e.target.value)}
-                      className="w-full bg-black/40 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:border-lime-500 outline-none transition-all resize-none min-h-[80px]" 
-                      placeholder="Type a message to send..."
-                    />
-                    <div className="flex justify-between items-center">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                        {status.send}
-                      </p>
-                      <button 
-                        onClick={sendMessage}
-                        className="flex items-center gap-2 bg-lime-500 text-black px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-lime-400 transition-all shadow-lg shadow-lime-500/20 active:scale-95"
-                      >
-                        <Send size={18} /> Send Message
-                      </button>
+                {qrUrl && <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-lime-500 text-black text-[10px] font-black uppercase px-4 py-1 rounded-full shadow-lg">Scan Now</div>}
+              </div>
+              <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/5 uppercase tracking-widest">
+                Expires in 10 minutes
+              </div>
+            </div>
+          </section>
+
+          {/* Permissions Section */}
+          <section className="bg-slate-900/40 border border-slate-800/60 p-8 rounded-[32px] flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-3">
+                  <ListChecks size={24} className="text-lime-500" />
+                  Access Permissions
+                </h2>
+                <p className="text-slate-400 mt-1">Configure what the AI agent can do on your behalf.</p>
+              </div>
+              <div className="hidden md:flex items-center gap-3 bg-black/40 border border-slate-800 rounded-full px-4 py-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Auto-save:</span>
+                <span className="text-[10px] font-bold text-lime-500 uppercase flex items-center gap-1.5"><CheckCircle2 size={10} /> Active</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              {[
+                { key: 'readMessages', label: 'Read WhatsApp Messages', desc: 'Allow AI to monitor incoming messages and understand conversation context.', icon: MessageSquare },
+                { key: 'searchContacts', label: 'Search User Contacts', desc: 'Allow AI to lookup existing contacts in your WhatsApp address book.', icon: UserIcon },
+                { key: 'sendMessages', label: 'Send Messages', desc: 'Allow AI to reply to customers and initiation conversations.', icon: Send },
+                { key: 'manageContacts', label: 'Manage Contacts & Calls', desc: 'Allow AI to create new contacts and handle call requests/scheduling.', icon: Info },
+                { key: 'automaticSender', label: 'Automatic Sender & Reminders', desc: 'Allow scheduled messaging and automated daily streak/reminder tasks.', icon: History },
+              ].map((p) => {
+                const Icon = p.icon;
+                const isEnabled = state.permissions?.[p.key as keyof Permissions];
+                return (
+                  <div 
+                    key={p.key}
+                    onClick={() => togglePermission(p.key as keyof Permissions)}
+                    className={`flex items-start gap-4 p-5 rounded-[24px] border cursor-pointer transition-all duration-300 ${
+                      isEnabled 
+                        ? 'bg-lime-500/10 border-lime-500/40 shadow-[inset_0_1px_20px_rgba(132,204,22,.05)]' 
+                        : 'bg-black/20 border-slate-800/50 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className={`p-3 rounded-2xl ${isEnabled ? 'bg-lime-500 text-black' : 'bg-slate-800 text-slate-400'}`}>
+                      <Icon size={20} />
+                    </div>
+                    <div className="flex-1 flex flex-col gap-1 pr-2">
+                      <span className={`font-bold transition-colors ${isEnabled ? 'text-white' : 'text-slate-400'}`}>{p.label}</span>
+                      <span className="text-xs text-slate-500 leading-relaxed">{p.desc}</span>
+                    </div>
+                    {/* Radio Button Style Toggle */}
+                    <div className="flex items-center justify-center pt-1">
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isEnabled ? 'border-lime-500 bg-lime-500/10' : 'border-slate-700 bg-transparent'
+                      }`}>
+                        {isEnabled && <div className="w-3 h-3 rounded-full bg-lime-500 animate-in fade-in zoom-in duration-300" />}
+                      </div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+
+        {/* Side Panel: Configuration & Tools */}
+        <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6">
+          <section className="bg-slate-900/40 border border-slate-800/60 p-6 rounded-[32px] flex flex-col gap-5">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Settings size={18} className="text-slate-500" />
+              Developer Settings
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Phone Number ID</label>
+                <input 
+                  type="text" 
+                  value={state.config.phoneNumberId} 
+                  onChange={e => setState(s => ({ ...s, config: { ...s.config, phoneNumberId: e.target.value } }))}
+                  className="bg-black/40 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-lime-500 outline-none transition-all font-mono" 
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Temporary Access Token</label>
+                <input 
+                  type="password" 
+                  value={state.config.accessToken} 
+                  onChange={e => setState(s => ({ ...s, config: { ...s.config, accessToken: e.target.value } }))}
+                  className="bg-black/40 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-lime-500 outline-none transition-all" 
+                />
+              </div>
+
+              <button 
+                onClick={saveConfig}
+                className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-xl text-sm font-bold transition-all border border-slate-700/50 mt-2"
+              >
+                <Save size={18} /> Update Server Settings
+              </button>
+            </div>
+
+            <div className="mt-2 pt-4 border-t border-slate-800/60">
+              <div className="bg-black/40 border border-slate-800/40 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase mb-2">
+                  <Info size={14} /> Local Status
                 </div>
-               </>
-             ) : (
-               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-40">
-                  <MessageSquare size={48} className="mb-4 text-slate-600" />
-                  <p className="text-sm font-medium">Select a contact from the list to view conversation.</p>
-               </div>
-             )}
-           </div>
-        </section>
+                <p className="text-[11px] text-slate-500 leading-relaxed italic">{status.config}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Test Tools Panel (Foldable or smaller) */}
+          <section className="bg-slate-900/10 border border-slate-800/40 p-6 rounded-[32px] flex flex-col gap-4">
+            <h2 className="text-sm font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest">
+              Integration Inspector
+            </h2>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-[11px] text-slate-400">Manual Webhook Simulation:</p>
+                <textarea 
+                  value={payloadInput}
+                  onChange={e => setPayloadInput(e.target.value)}
+                  className="w-full bg-black/40 border border-slate-800 rounded-xl px-3 py-2 text-[10px] font-mono focus:border-lime-500 outline-none transition-all resize-none min-h-[80px]" 
+                  placeholder='Paste JSON response...'
+                />
+                <button 
+                  onClick={processPayload}
+                  className="bg-slate-800 hover:bg-slate-700 text-[11px] font-bold py-2 rounded-lg transition-all"
+                >
+                  Verify Payload
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
 
       <style>{`
