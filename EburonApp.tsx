@@ -169,7 +169,6 @@ export default function EburonApp() {
   const [audioRecorder] = useState(() => new AudioRecorder());
   const [isPickerLoaded, setIsPickerLoaded] = useState(false);
   const [isVideoFullScreen, setIsVideoFullScreen] = useState(false);
-  const [isMeetOpen, setIsMeetOpen] = useState(false);
 
   useEffect(() => {
     const loadPicker = () => {
@@ -483,7 +482,7 @@ export default function EburonApp() {
       }
       setActiveOverlay(toolId);
     } else if (toolId === 'meet') {
-        setIsMeetOpen(true);
+        setActiveOverlay('meet');
         startWebcam();
     } else {
       const prompts: Record<string, string> = {
@@ -701,7 +700,7 @@ export default function EburonApp() {
              </div>
              <span>Mic</span>
           </button>
-          <button className="nav-item" onClick={isWebcamActive ? stopStream : startWebcam} style={{ color: isWebcamActive ? 'var(--accent-active)' : 'var(--text-muted)' }}>
+          <button className="nav-item" onClick={() => { if(isWebcamActive) { stopStream(); setActiveOverlay(null); } else { startWebcam(); setActiveOverlay('meet'); } }} style={{ color: isWebcamActive ? 'var(--accent-active)' : 'var(--text-muted)' }}>
              <div className="icon-wrapper">
                <div className="icon-pulse" style={{ 
                  width: isWebcamActive ? `28px` : '0px', 
@@ -713,7 +712,7 @@ export default function EburonApp() {
              </div>
              <span>Camera</span>
           </button>
-          <button className="nav-item" onClick={isScreenShareActive ? stopStream : startScreenShare} style={{ color: isScreenShareActive ? 'var(--accent-active)' : 'var(--text-muted)' }}>
+          <button className="nav-item" onClick={() => { if(isScreenShareActive) { stopStream(); setActiveOverlay(null); } else { startScreenShare(); setActiveOverlay('meet'); } }} style={{ color: isScreenShareActive ? 'var(--accent-active)' : 'var(--text-muted)' }}>
              <div className="icon-wrapper">
                <div className="icon-pulse" style={{ 
                  width: isScreenShareActive ? `28px` : '0px', 
@@ -727,23 +726,6 @@ export default function EburonApp() {
           </button>
         </nav>
       </div>
-
-      <AnimatePresence>
-      {isMeetOpen && (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          exit={{ opacity: 0, scale: 0.9 }}
-          className="full-page-overlay meet-overlay active" 
-          style={{ backgroundColor: 'black', zIndex: 2000 }}>
-          <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 2001, display: 'flex', gap: '10px' }}>                
-            <button onClick={() => { if(isScreenShareActive) stopStream(); else startScreenShare(); }} style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', border: 'none', padding: '10px', cursor: 'pointer' }}><Cast size={24} color={isScreenShareActive ? 'var(--accent-active)' : "white"}/></button>
-            <button onClick={() => { stopStream(); setIsMeetOpen(false); }} style={{ background: 'rgba(255,0,0,0.5)', borderRadius: '50%', border: 'none', padding: '10px', cursor: 'pointer' }}><X size={24} color="white"/></button>
-          </div>
-          <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </motion.div>
-      )}
-      </AnimatePresence>
 
       {/* Profile Overlay */}
       <div id="overlay-profile" className={`full-page-overlay ${activeOverlay === 'profile' ? 'active' : ''}`}>
@@ -1019,26 +1001,18 @@ export default function EburonApp() {
              </div>
              {/* User webcam (bottom) */}
              <div style={{ flex: 1, backgroundColor: '#000', position: 'relative' }}>
-                {activeOverlay === 'meet' && (
-                  <video autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} ref={video => {
-                    if (video && !video.srcObject) {
-                      navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(stream => { video.srcObject = stream; })
-                        .catch(err => console.error("Camera error:", err));
-                    }
-                  }} />
-                )}
+                <video autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} ref={videoRef} />
                 <div style={{ position: 'absolute', bottom: '16px', left: '16px', color: '#fff', fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>You</div>
              </div>
           </div>
           {/* Controls */}
           <div style={{ padding: '24px', display: 'flex', gap: '16px', justifyContent: 'center', backgroundColor: '#000' }}>
-            <button className="icon-btn" style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Mic size={24} /></button>
-            <button className="icon-btn" style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Video size={24} /></button>
-            <button className="icon-btn" style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cast size={24} /></button>
+            <button className="icon-btn" onClick={() => connected ? disconnect() : connect()} style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: connected ? '#444' : '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Mic size={24} /></button>
+            <button className="icon-btn" onClick={() => { if(isWebcamActive){ stopStream(); } else { startWebcam(); } }} style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: isWebcamActive ? '#444' : '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Video size={24} /></button>
+            <button className="icon-btn" onClick={() => { if(isScreenShareActive){ stopStream(); } else { startScreenShare(); } }} style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: isScreenShareActive ? '#444' : '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cast size={24} /></button>
             <button className="icon-btn" style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setActiveOverlay(null)}><X size={24} /></button>
           </div>
-       </div>
+        </div>
       </div>
 
       {/* Picker Overlay */}
