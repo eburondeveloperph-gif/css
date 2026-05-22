@@ -11,22 +11,22 @@ export const personalAssistantTools: FunctionCall[] = [
     name: 'create_calendar_event',
     description: 'Creates a new event in the user\'s calendar.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         summary: {
-          type: 'STRING',
+          type: 'string',
           description: 'The title or summary of the event.',
         },
         location: {
-          type: 'STRING',
+          type: 'string',
           description: 'The location of the event.',
         },
         startTime: {
-          type: 'STRING',
+          type: 'string',
           description: 'The start time of the event in ISO 8601 format.',
         },
         endTime: {
-          type: 'STRING',
+          type: 'string',
           description: 'The end time of the event in ISO 8601 format.',
         },
       },
@@ -39,18 +39,18 @@ export const personalAssistantTools: FunctionCall[] = [
     name: 'send_email',
     description: 'Sends an email to a specified recipient.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         recipient: {
-          type: 'STRING',
+          type: 'string',
           description: 'The email address of the recipient.',
         },
         subject: {
-          type: 'STRING',
+          type: 'string',
           description: 'The subject line of the email.',
         },
         body: {
-          type: 'STRING',
+          type: 'string',
           description: 'The body content of the email.',
         },
       },
@@ -63,14 +63,14 @@ export const personalAssistantTools: FunctionCall[] = [
     name: 'set_reminder',
     description: 'Sets a reminder for the user.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         task: {
-          type: 'STRING',
+          type: 'string',
           description: 'The task for the reminder.',
         },
         time: {
-          type: 'STRING',
+          type: 'string',
           description: 'The time for the reminder in ISO 8601 format.',
         },
       },

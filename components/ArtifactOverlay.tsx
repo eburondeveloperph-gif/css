@@ -6,6 +6,31 @@ import { useUI } from '../lib/state';
 
 const DownloadButton = ({ content, title, type, ext }: { content: string, title: string, type: string, ext: string }) => (
   <button className="flex items-center gap-2 bg-yellow-600/10 text-yellow-500 border border-yellow-600/30 px-4 py-2 rounded-sm hover:bg-yellow-600/20 transition uppercase text-xs font-bold tracking-wider" onClick={() => {
+    if (ext === 'pdf' && !content.startsWith('data:')) {
+      const rootHtml = type === 'text/html' ? content : `
+        <html>
+          <head>
+            <style>
+              body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+              pre { white-space: pre-wrap; font-family: inherit; }
+            </style>
+          </head>
+          <body>
+            <pre>${content}</pre>
+          </body>
+        </html>
+      `;
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.open();
+        win.document.write(rootHtml);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 500);
+      }
+      return;
+    }
+    
     let url;
     if (type === 'application/pdf' && content.startsWith('data:')) {
       url = content;
@@ -18,7 +43,7 @@ const DownloadButton = ({ content, title, type, ext }: { content: string, title:
     a.download = `${title?.replace(/[^a-z0-9]/gi, '_') || 'document'}.${ext}`;
     a.click();
     if (!content.startsWith('data:')) {
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
   }}>
     <Download size={14} /> Download {ext.toUpperCase()}

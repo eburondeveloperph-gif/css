@@ -11,18 +11,18 @@ export const customerSupportTools: FunctionCall[] = [
     name: 'start_return',
     description: 'Starts the return process for an item, collecting necessary details from the user.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         orderId: {
-          type: 'STRING',
+          type: 'string',
           description: 'The ID of the order containing the item to be returned.',
         },
         itemName: {
-          type: 'STRING',
+          type: 'string',
           description: 'The name of the item the user wants to return.',
         },
         reason: {
-          type: 'STRING',
+          type: 'string',
           description: 'The reason the user is returning the item.',
         },
       },
@@ -35,18 +35,18 @@ export const customerSupportTools: FunctionCall[] = [
     name: 'get_order_status',
     description: 'Provides the current status of a user\'s order, searching by order ID or customer details.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         orderId: {
-          type: 'STRING',
+          type: 'string',
           description: 'The ID of the order to check. Ask for this first.',
         },
         customerName: {
-          type: 'STRING',
+          type: 'string',
           description: 'The name of the customer, if order ID is not available.',
         },
         customerEmail: {
-          type: 'STRING',
+          type: 'string',
           description: 'The email of the customer, if order ID is not available.',
         },
       },
@@ -58,10 +58,10 @@ export const customerSupportTools: FunctionCall[] = [
     name: 'speak_to_representative',
     description: 'Escalates the conversation to a human customer support representative.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         reason: {
-          type: 'STRING',
+          type: 'string',
           description: 'A brief summary of the user\'s issue for the representative.',
         },
       },

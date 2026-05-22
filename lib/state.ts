@@ -16,10 +16,10 @@ export const workspaceTools: FunctionCall[] = [
     name: "list_drive_files",
     description: "Lists files from the user's Google Drive.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        pageSize: { type: "NUMBER", description: "Number of files to return." },
-        q: { type: "STRING", description: "Search query (e.g., name contains 'Q1')." }
+        pageSize: { type: "number", description: "Number of files to return." },
+        q: { type: "string", description: "Search query (e.g., name contains 'Q1')." }
       }
     },
     isEnabled: true,
@@ -29,9 +29,9 @@ export const workspaceTools: FunctionCall[] = [
     name: "read_google_doc",
     description: "Reads the content of a Google Doc.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        documentId: { type: "STRING", description: "The ID of the document." }
+        documentId: { type: "string", description: "The ID of the document." }
       },
       required: ["documentId"]
     },
@@ -42,10 +42,10 @@ export const workspaceTools: FunctionCall[] = [
     name: "read_spreadsheet",
     description: "Reads data from a Google Sheet.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        spreadsheetId: { type: "STRING", description: "The ID of the spreadsheet." },
-        range: { type: "STRING", description: "The A1 notation of the range to read (e.g., 'Sheet1!A1:B10')." }
+        spreadsheetId: { type: "string", description: "The ID of the spreadsheet." },
+        range: { type: "string", description: "The A1 notation of the range to read (e.g., 'Sheet1!A1:B10')." }
       },
       required: ["spreadsheetId", "range"]
     },
@@ -56,9 +56,9 @@ export const workspaceTools: FunctionCall[] = [
     name: "list_contacts",
     description: "Lists the user's Google Contacts.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        pageSize: { type: "NUMBER", description: "Number of contacts to return." }
+        pageSize: { type: "number", description: "Number of contacts to return." }
       }
     },
     isEnabled: true,
@@ -68,9 +68,9 @@ export const workspaceTools: FunctionCall[] = [
     name: "list_tasks",
     description: "Lists the user's tasks from Google Tasks.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        tasklist: { type: "STRING", description: "The ID of the task list (default: '@default')." }
+        tasklist: { type: "string", description: "The ID of the task list (default: '@default')." }
       }
     },
     isEnabled: true,
@@ -80,10 +80,10 @@ export const workspaceTools: FunctionCall[] = [
     name: "send_chat_message",
     description: "Sends a message to a Google Chat space.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        spaceName: { type: "STRING", description: "The name/ID of the space (e.g., 'spaces/AAAAAAAA')." },
-        text: { type: "STRING", description: "The message content." }
+        spaceName: { type: "string", description: "The name/ID of the space (e.g., 'spaces/AAAAAAAA')." },
+        text: { type: "string", description: "The message content." }
       },
       required: ["spaceName", "text"]
     },
@@ -94,7 +94,7 @@ export const workspaceTools: FunctionCall[] = [
     name: "list_keep_notes",
     description: "Lists the user's notes from Google Keep.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {}
     },
     isEnabled: true,
@@ -104,10 +104,10 @@ export const workspaceTools: FunctionCall[] = [
     name: "create_keep_note",
     description: "Creates a note in Google Keep.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING" },
-        text: { type: "STRING" }
+        title: { type: "string" },
+        text: { type: "string" }
       },
       required: ["text"]
     },
@@ -118,7 +118,7 @@ export const workspaceTools: FunctionCall[] = [
     name: "open_google_picker",
     description: "Opens the Google File Picker UI for the user to select files from Google Drive.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {}
     },
     isEnabled: true,
@@ -128,9 +128,9 @@ export const workspaceTools: FunctionCall[] = [
     name: "create_meet_link",
     description: "Creates a Google Meet link by scheduling a quick calendar event.",
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        summary: { type: "STRING", description: "The title of the meeting." }
+        summary: { type: "string", description: "The title of the meeting." }
       },
       required: ["summary"]
     },
@@ -143,18 +143,18 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
         url: {
-          type: "STRING",
+          type: "string",
           description: "The full URL endpoint to fetch from Google API. e.g. https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=2024-01-01T00:00:00Z"
         },
         method: {
-          type: "STRING",
+          type: "string",
           description: "HTTP Method, e.g. GET, POST, PUT, DELETE, PATCH"
         },
         body: {
-          type: "OBJECT",
+          type: "object",
           description: "Optional JSON body for POST/PUT requests."
         }
       },
@@ -167,14 +167,14 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
         memory: {
-          type: "STRING",
+          type: "string",
           description: "Clear, concise sentence or two summarizing what to remember."
         },
         type: {
-          type: "STRING",
+          type: "string",
           description: "Type of memory: 'personal', 'work', or 'project'."
         }
       },
@@ -187,9 +187,9 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        query: { type: "STRING" }
+        query: { type: "string" }
       },
       required: ["query"]
     }
@@ -200,10 +200,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING" },
-        content: { type: "STRING" }
+        title: { type: "string" },
+        content: { type: "string" }
       },
       required: ["title", "content"]
     }
@@ -213,7 +213,7 @@ export const workspaceTools: FunctionCall[] = [
     description: "Lists all saved notes for the user.",
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
-    parameters: { type: "OBJECT", properties: {} }
+    parameters: { type: "object", properties: {} }
   },
   {
     name: "read_note",
@@ -221,9 +221,9 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING" }
+        title: { type: "string" }
       },
       required: ["title"]
     }
@@ -233,7 +233,7 @@ export const workspaceTools: FunctionCall[] = [
     description: "Retrieves the user's current GPS location via the browser.",
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
-    parameters: { type: "OBJECT", properties: {} }
+    parameters: { type: "object", properties: {} }
   },
   {
     name: "open_overlay",
@@ -241,10 +241,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
         overlay_id: { 
-          type: "STRING", 
+          type: "string", 
           enum: ["profile", "settings", "history", "tools", "whatsapp", "scanner", "meet", "map", "picker"],
           description: "The ID of the overlay to open."
         }
@@ -258,7 +258,7 @@ export const workspaceTools: FunctionCall[] = [
     description: "Opens the complete Eburon AI Asset + Document Studio. Use this when the user asks for brand assets, documents studio, or mentions creating all pages and tools from the icons.",
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
-    parameters: { type: "OBJECT", properties: {} }
+    parameters: { type: "object", properties: {} }
   },
   {
     name: "create_html_document",
@@ -266,10 +266,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING", description: "The title of the document" },
-        content: { type: "STRING", description: "The full HTML content of the document" }
+        title: { type: "string", description: "The title of the document" },
+        content: { type: "string", description: "The full HTML content of the document" }
       },
       required: ["title", "content"]
     }
@@ -280,10 +280,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING", description: "The title of the markdown document" },
-        content: { type: "STRING", description: "The markdown content" }
+        title: { type: "string", description: "The title of the markdown document" },
+        content: { type: "string", description: "The markdown content" }
       },
       required: ["title", "content"]
     }
@@ -294,10 +294,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING", description: "The title/filename of the JSON" },
-        content: { type: "STRING", description: "The stringified JSON content" }
+        title: { type: "string", description: "The title/filename of the JSON" },
+        content: { type: "string", description: "The stringified JSON content" }
       },
       required: ["title", "content"]
     }
@@ -308,10 +308,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING", description: "The chart title" },
-        data: { type: "OBJECT", description: "The JSON data object for the chart" }
+        title: { type: "string", description: "The chart title" },
+        data: { type: "object", description: "The JSON data object for the chart" }
       },
       required: ["title", "data"]
     }
@@ -322,22 +322,22 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
         title: {
-          type: "STRING",
+          type: "string",
           description: "The title of the artifact"
         },
         type: {
-          type: "STRING",
+          type: "string",
           description: "The type of artifact: 'markdown', 'code', 'chart', 'structured', 'html'"
         },
         content: {
-          type: "STRING",
+          type: "string",
           description: "The actual content of the artifact (Markdown string, code, or JSON data for charts)"
         },
         language: {
-          type: "STRING",
+          type: "string",
           description: "If type is 'code', the programming language"
         }
       },
@@ -350,9 +350,9 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        query: { type: "STRING" }
+        query: { type: "string" }
       },
       required: ["query"]
     }
@@ -363,9 +363,9 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        expression: { type: "STRING" }
+        expression: { type: "string" }
       },
       required: ["expression"]
     }
@@ -375,7 +375,7 @@ export const workspaceTools: FunctionCall[] = [
     description: "Returns current local date, time, and timezone.",
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
-    parameters: { type: "OBJECT", properties: {} }
+    parameters: { type: "object", properties: {} }
   },
   {
     name: "open_browser_url",
@@ -383,9 +383,9 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        url: { type: "STRING" }
+        url: { type: "string" }
       },
       required: ["url"]
     }
@@ -396,10 +396,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING" },
-        content: { type: "STRING" }
+        title: { type: "string" },
+        content: { type: "string" }
       },
       required: ["title", "content"]
     }
@@ -410,10 +410,10 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        title: { type: "STRING" },
-        items: { type: "ARRAY", items: { type: "STRING" } }
+        title: { type: "string" },
+        items: { type: "array", items: { type: "string" } }
       },
       required: ["title", "items"]
     }
@@ -424,9 +424,9 @@ export const workspaceTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
     parameters: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        text: { type: "STRING" }
+        text: { type: "string" }
       },
       required: ["text"]
     }
@@ -559,7 +559,7 @@ export const useTools = create<{
             isEnabled: true,
             description: '',
             parameters: {
-              type: 'OBJECT',
+              type: 'object',
               properties: {},
             },
             scheduling: FunctionResponseScheduling.INTERRUPT,

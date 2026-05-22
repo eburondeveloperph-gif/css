@@ -65,17 +65,29 @@ export default function StreamingConsole() {
 
   // Set the configuration for the Live API
   useEffect(() => {
+    const sanitizeParameters = (params: any) => {
+      if (!params) return undefined;
+      if (params.type === "object" && params.properties && Object.keys(params.properties).length === 0) {
+        return undefined;
+      }
+      return params;
+    };
+
     const enabledTools = tools
       .filter(tool => tool.isEnabled)
-      .map(tool => ({
-        functionDeclarations: [
-          {
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.parameters,
-          },
-        ],
-      }));
+      .map(tool => {
+        const sanitizedParams = sanitizeParameters(tool.parameters);
+        const declaration: any = {
+          name: tool.name,
+          description: tool.description,
+        };
+        if (sanitizedParams) {
+          declaration.parameters = sanitizedParams;
+        }
+        return {
+          functionDeclarations: [declaration],
+        };
+      });
 
     // Using `any` for config to accommodate `speechConfig`, which is not in the
     // current TS definitions but is used in the working reference example.

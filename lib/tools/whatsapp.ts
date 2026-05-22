@@ -6,14 +6,14 @@ export const whatsappTools: FunctionCall[] = [
     name: 'send_whatsapp_message',
     description: 'Sends a WhatsApp message to a specific phone number using the official Meta WhatsApp Cloud API.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         phone: {
-          type: 'STRING',
+          type: 'string',
           description: 'The phone number of the recipient (e.g., "5511999999999").',
         },
         text: {
-          type: 'STRING',
+          type: 'string',
           description: 'The content of the message to send.',
         },
       },
@@ -26,7 +26,7 @@ export const whatsappTools: FunctionCall[] = [
     name: 'connect_whatsapp',
     description: 'Ensures the WhatsApp service is connected and ready to send messages.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {},
     },
     isEnabled: true,
@@ -36,10 +36,10 @@ export const whatsappTools: FunctionCall[] = [
     name: 'list_whatsapp_messages',
     description: 'Retrieves a list of recent WhatsApp messages from the connected device.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         limit: {
-          type: 'INTEGER',
+          type: 'integer',
           description: 'The maximum number of messages to retrieve (e.g. 10).',
         }
       },

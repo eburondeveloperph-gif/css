@@ -26,12 +26,43 @@ export function DocumentWorkspace({ artifact }: DocumentWorkspaceProps) {
   const setIsWorkspaceFullScreen = useUI((state) => state.setIsWorkspaceFullScreen);
 
   const handleDownload = (format: string) => {
+    if (format === 'PDF') {
+      const isHtml = artifact.type === 'html';
+      const rootHtml = isHtml ? artifact.content : `
+        <html>
+          <head>
+            <style>
+              body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+              pre { white-space: pre-wrap; font-family: inherit; }
+            </style>
+          </head>
+          <body>
+            <pre>${artifact.content}</pre>
+          </body>
+        </html>
+      `;
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.open();
+        win.document.write(rootHtml);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 500);
+      }
+      return;
+    }
+
     // Basic download logic
-    const blob = new Blob([artifact.content], { type: 'text/plain' });
+    let mimeType = 'text/plain';
+    let ext = format.toLowerCase();
+    if (format === 'HTML') mimeType = 'text/html';
+    else if (format === 'DOCX') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+    const blob = new Blob([artifact.content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${artifact.title || 'document'}.${format.toLowerCase()}`;
+    a.download = `${artifact.title || 'document'}.${ext}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -72,8 +103,15 @@ export function DocumentWorkspace({ artifact }: DocumentWorkspaceProps) {
                    </div>
                 </div>
 
-                <div className="markdown-body" style={{ color: '#000' }}>
-                  {artifact.type === 'markdown' ? (
+                <div className="markdown-body" style={{ color: '#000', width: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+                  {artifact.type === 'html' ? (
+                    <iframe 
+                      srcDoc={artifact.content} 
+                      className="w-full h-full border-0 rounded bg-white flex-1" 
+                      style={{ minHeight: '600px' }} 
+                      title="HTML Preview" 
+                    />
+                  ) : artifact.type === 'markdown' ? (
                     <ReactMarkdown>{artifact.content}</ReactMarkdown>
                   ) : (
                     <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{artifact.content}</div>

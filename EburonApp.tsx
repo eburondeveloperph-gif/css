@@ -296,11 +296,22 @@ export default function EburonApp() {
   }, [connected, client, personaName, userCallName]);
 
   useEffect(() => {
+    const sanitizeParameters = (params: any) => {
+      if (!params) return undefined;
+      if (params.type === "object" && params.properties && Object.keys(params.properties).length === 0) {
+        return undefined;
+      }
+      return params;
+    };
+
     const enabledTools = tools
       .filter(t => t.isEnabled && t.name !== 'google_search')
       .map(t => {
         const { isEnabled, scheduling, ...rest } = t;
-        return { functionDeclarations: [rest] };
+        const sanitizedRest = { ...rest };
+        sanitizedRest.parameters = sanitizeParameters(sanitizedRest.parameters);
+        if (!sanitizedRest.parameters) delete sanitizedRest.parameters;
+        return { functionDeclarations: [sanitizedRest] };
       });
       
     const groundingConfig = { googleSearch: {} };

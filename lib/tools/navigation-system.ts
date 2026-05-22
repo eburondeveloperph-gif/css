@@ -11,14 +11,14 @@ export const navigationSystemTools: FunctionCall[] = [
     name: 'find_route',
     description: 'Finds a route to a specified destination.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         destination: {
-          type: 'STRING',
+          type: 'string',
           description: 'The destination address or landmark.',
         },
         modeOfTransport: {
-          type: 'STRING',
+          type: 'string',
           description: 'The mode of transport (e.g., driving, walking, cycling).',
         },
       },
@@ -31,14 +31,14 @@ export const navigationSystemTools: FunctionCall[] = [
     name: 'find_nearby_places',
     description: 'Finds nearby places of a certain type.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         placeType: {
-          type: 'STRING',
+          type: 'string',
           description: 'The type of place to search for (e.g., restaurant, gas station, park).',
         },
         radius: {
-          type: 'NUMBER',
+          type: 'number',
           description: 'The search radius in kilometers.',
         },
       },
@@ -51,10 +51,10 @@ export const navigationSystemTools: FunctionCall[] = [
     name: 'get_traffic_info',
     description: 'Gets real-time traffic information for a specified location.',
     parameters: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
         location: {
-          type: 'STRING',
+          type: 'string',
           description: 'The location to get traffic information for.',
         },
       },
